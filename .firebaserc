@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "blck-twttr"
+  },
+  "targets": {
+    "the-handsomest-nerd": {
+      "hosting": {
+        "the-handsomest-nerd": [
+          "the-handsomest-nerd"
+        ]
+      }
+    }
+  }
+}
