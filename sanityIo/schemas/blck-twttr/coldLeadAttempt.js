@@ -18,5 +18,16 @@ export default {
       title: 'QuestionId',
       type: 'string',
     },
+    {
+      name: 'questionSlug',
+      title: 'Question Slug',
+      type: 'string',
+    },
+    {
+      name: 'questionRef',
+      title: 'Question',
+      type: 'reference',
+      to:[{type:"verificationQuestion"}]
+    },
   ]
 }

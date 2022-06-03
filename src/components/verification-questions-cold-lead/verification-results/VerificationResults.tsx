@@ -1,14 +1,7 @@
-import { Button, Card, Grid, Hidden, Typography } from '@material-ui/core'
+import { Card, Grid, Typography } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import { useHistory, useLocation, useParams } from 'react-router-dom'
-import { ColdLead, StepProps } from '../PreSignup'
-import blckTwttrTheme from '../../abReplica/common/Theme'
-import { useStepStyles } from '../email-capture-step/Step1'
-import { SanityReportCard } from '../../../common/sanityIo/Types'
-import cmsClient from '../../abReplica/cmsClient'
-import firebaseAnalyticsClient from '../../abReplica/firebaseAnalyticsClient'
-import { RoutesEnum } from '../../../App'
 import { CheckCircle, Close } from '@material-ui/icons'
 import VerificationResultsFailHeader from './results/VerificationResultsFailHeader'
 import VerificationResultsSuccessHeader from './results/VerificationResultsSuccessHeader'
@@ -16,7 +9,13 @@ import VerificationResultsSuccessFooter from './results/VerificationResultsSucce
 import VerificationResultsFailFooter from './results/VerificationResultsFailFooter'
 import { motion } from 'framer-motion'
 import VerificationPageLayout from './VerificationPageLayout'
-import blackFireworks from '../../abReplica/common/assets/black-fireworks.png'
+import { useStepStyles } from '../email-capture-step/EmailCaptureStep'
+import AddVerificationQuestionModalButton from '../add-verification-question-modal/AddVerificationQuestionModalButton'
+import BlackFireworksAnimation from '../../../animations/BlackFireworksAnimation'
+import { ColdLead, SanityReportCard, VerificationStepProps } from '../../../utils/Types'
+import blckTwttrTheme from '../../theme/Theme'
+import firebaseAnalyticsClient from '../../shared/firebase/firebaseAnalyticsClient'
+import cmsClient from '../../shared/cms/cmsClient'
 
 export const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -131,11 +130,7 @@ export const useStyles = makeStyles((theme: Theme) => ({
   }
 }))
 
-const VerificationResults: FunctionComponent<StepProps> = ({
-                                                             lead,
-                                                             setLead,
-                                                             imageVerificationQuestion
-                                                           }: StepProps) => {
+const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: VerificationStepProps) => {
   const classes = useStepStyles(blckTwttrTheme)
 
   const history = useHistory()
@@ -193,41 +188,7 @@ const VerificationResults: FunctionComponent<StepProps> = ({
 
   const questionResultBlackCard = () => {
     return <Grid container item xs={5} justifyContent='center' style={{marginBottom: '32px', position: 'relative'}}>
-      {leadBlackCard?.isVerified && <Grid item style={{
-        position: 'absolute',
-        zIndex: 9999
-      }}>
-        <motion.div
-          initial={{
-            opacity: 1, scale: .5, position: 'absolute', top: '-423px',
-            left: '-463px'
-          }}
-          animate={{opacity: 0, scale: 1.5}}
-          transition={{duration: 2}}
-        >
-          <img src={blackFireworks}/>
-        </motion.div>
-        <motion.div
-          initial={{
-            opacity: 1, scale: 0, position: 'absolute', top: '-200px',
-            left: '-763px'
-          }}
-          animate={{opacity: 0, scale: .5}}
-          transition={{duration: 1.25}}
-        >
-          <img src={blackFireworks}/>
-        </motion.div>
-        <motion.div
-          initial={{
-            opacity: 1, scale: 0, position: 'absolute', top: '-550px',
-            left: '-763px'
-          }}
-          animate={{opacity: 0, scale: 1.05}}
-          transition={{duration: 1.5}}
-        >
-          <img src={blackFireworks}/>
-        </motion.div>
-      </Grid>}
+      {leadBlackCard?.isVerified && <BlackFireworksAnimation />}
       <Card style={{
         position: 'relative',
         backgroundColor: '#3b3b3b',
@@ -348,16 +309,10 @@ const VerificationResults: FunctionComponent<StepProps> = ({
           </Grid>
         </Grid>
       </Grid>
-      <Grid item>
-        <Button
-          aria-label='submit a question'
-          color='secondary'
-          className={classes.button}
-          onClick={() => history.push(RoutesEnum.SUBMIT_QUESTION)}
-        >
-          <Typography variant='button' align='center' style={{fontFamily: 'Youth', textTransform: 'capitalize'}}>Add a
-            #BlackTwitterVerificationQuestion</Typography>
-        </Button>
+      <Grid item container justifyContent='center'>
+        <Grid container item xs={10} justifyContent='center'>
+          <AddVerificationQuestionModalButton />
+        </Grid>
       </Grid>
     </VerificationPageLayout>
   )

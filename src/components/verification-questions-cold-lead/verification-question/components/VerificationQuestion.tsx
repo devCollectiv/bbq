@@ -1,8 +1,8 @@
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
-import blckTwttrTheme from '../../abReplica/common/Theme'
 import { FormControl, FormControlLabel, FormLabel, Grid, Radio, RadioGroup, Typography } from '@material-ui/core'
-import { SanitySlug, SanityVerificationQuestion } from '../../../common/sanityIo/Types'
+import blckTwttrTheme from '../../../theme/Theme'
+import { SanityVerificationQuestion } from '../../../../utils/Types'
 
 export const useStyles = makeStyles((theme: Theme) => ({}))
 
@@ -32,7 +32,7 @@ const VerificationQuestion: FunctionComponent<IProps> = ({verificationQuestion, 
   },[selectedResponse])
 
   return (
-    <Grid container item style={{ maxHeight:"250px", minHeight:"230px"}} xs={8} sm={10}>
+    <Grid container item style={{ minHeight:"230px"}} xs={8} sm={10}>
       <Grid item>
         <Typography variant='h5' gutterBottom color='secondary'>{verificationQuestion?.question}?</Typography>
       </Grid>

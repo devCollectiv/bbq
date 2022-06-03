@@ -1,11 +1,8 @@
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
-import blckTwttrTheme from '../../../abReplica/common/Theme'
 import { Grid, Typography } from '@material-ui/core'
-import { useStepStyles } from '../../email-capture-step/Step1'
-import { motion } from 'framer-motion'
-
-import blackFireworks from '../../../../components/abReplica/common/assets/black-fireworks.png'
+import { useStepStyles } from '../../email-capture-step/EmailCaptureStep'
+import blckTwttrTheme from '../../../theme/Theme'
 
 
 export const useStyles = makeStyles((theme: Theme) => ({}))

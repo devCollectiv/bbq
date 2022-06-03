@@ -1,8 +1,7 @@
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
-import blckTwttrTheme from '../../abReplica/common/Theme'
 import { Button, Grid, Typography } from '@material-ui/core'
-import { Twitter } from '@material-ui/icons'
+import blckTwttrTheme from '../../theme/Theme'
 
 export const useStyles = makeStyles((theme: Theme) => ({}))
 

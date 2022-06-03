@@ -1,98 +1,35 @@
-import { Button, CircularProgress, Grid, Hidden, MuiThemeProvider, TextField, Typography } from '@material-ui/core'
+import { Button, CircularProgress, Grid, TextField, Typography } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import leadClient, { UpdateLeadRequest } from '../leadClient'
 import { useHistory, useLocation } from 'react-router-dom'
-import { StepProps } from '../PreSignup'
-import CssGeogrid from '../css-geogrid/CssGeogrid'
 import { motion } from 'framer-motion'
 import emailValidator from '../../../utils/emailValidator'
 import { RoutesEnum } from '../../../App'
-import blckTwttrTheme from '../../abReplica/common/Theme'
-import { VerificationQuestionDifficultyEnum } from '../../../common/sanityIo/Types'
-import firebaseAnalyticsClient from '../../abReplica/firebaseAnalyticsClient'
 import VerificationPageLayout from '../verification-results/VerificationPageLayout'
+import { VerificationQuestionStepEnum, VerificationStepProps } from '../../../utils/Types'
+import blckTwttrTheme from '../../theme/Theme'
+import firebaseAnalyticsClient from '../../shared/firebase/firebaseAnalyticsClient'
+import VerificationQuestionCtaButton from '../VerificationQuestionCtaButton'
 
 export const useStepStyles = makeStyles((theme: Theme) => ({
   attemptLabel: {
     marginTop: theme.spacing(.5)
   },
-  root: {
-    // [theme.breakpoints.up('lg')]: {
-    //   paddingTop: theme.spacing(16)
-    // }
-  },
   button: {
-    // height: '40px',
     borderRadius: '10px',
-    // width: '520px',
     padding: theme.spacing(1,5),
-    boxShadow: '8px 8px #3B3B3B',
+    boxShadow: '8px 8px #b2b2b2',
     [theme.breakpoints.down('xs')]: {
-      boxShadow: '4px 4px #3B3B3B'
+      boxShadow: '4px 4px #b2b2b2',
     }
   },
-  formControl: {
-    // margin: theme.spacing(1),
-    // width: '377px'
-  },
-  emailTextField: {
-    // [theme.breakpoints.up('sm')]: {
-    //   width: '377px'
-    // }
-  },
-  pageIndicator: {
-    display: 'block',
-    [theme.breakpoints.down('xs')]: {
-      width: '24px'
-    }
-  },
-  footer: {
-    position: 'fixed',
-    bottom: 0,
-    right: 0
-  },
-  emailContainer: {},
-  responsiveTitle: {
-    // borderLeft: '8px solid transparent',
-    // [theme.breakpoints.up('sm')]: theme.typography.h3
-  },
-  responsiveTitleBrand: {
-    position: 'relative'
-  },
-  geogrid: {
-    // marginLeft: theme.spacing(5)
-  },
-  step2Accent: {
-    display: 'inline-flex',
-    // background: '#CEE4D1',
-    // borderRadius: '51.07px',
-    position: 'relative',
-    [theme.breakpoints.down('xs')]: {
-      top: '5px',
-      left: '-4px',
-      width: '122px',
-      height: '22.3px'
-    },
-    [theme.breakpoints.up('sm')]: {
-      top: '6px',
-      left: '-8px',
-      width: '164px',
-      height: '31.3px'
-    }
-  },
-  step2AccentTypography: {
-    // top: 0,
-    // left: 0,
-    // textTransform: 'uppercase'
-  },
-  formFieldsContainer: {},
   disabledButton: {
     marginTop: theme.spacing(1)
   }
 }))
 
-const EmailCaptureStep: FunctionComponent<StepProps> = ({lead, setLead}: StepProps) => {
+const EmailCaptureStep: FunctionComponent<VerificationStepProps> = ({lead, setLead}: VerificationStepProps) => {
   const classes = useStepStyles(blckTwttrTheme)
   const history = useHistory()
 
@@ -127,7 +64,7 @@ const EmailCaptureStep: FunctionComponent<StepProps> = ({lead, setLead}: StepPro
     return leadClient.createLead(lead.email).then((createdLead) => {
       firebaseAnalyticsClient.emailSubmittedEvent(lead.email, createdLead._id)
 
-      history.push(RoutesEnum.ENTRY_QUESTIONS + '/' + VerificationQuestionDifficultyEnum.EASY + '/' + createdLead._id)
+      history.push(RoutesEnum.ENTRY_QUESTIONS + '/' + VerificationQuestionStepEnum.EASY + '/' + createdLead._id)
     }).catch(() => {
       setFormSubmitting(false)
     })
@@ -177,11 +114,11 @@ const EmailCaptureStep: FunctionComponent<StepProps> = ({lead, setLead}: StepPro
               color='secondary'
               variant='h3'
               align='center'
-              className={classes.responsiveTitle}>
+              >
               BlckTwttr
             </Typography>
           </Grid>
-          <Grid container justifyContent='center' item className={classes.emailContainer}
+          <Grid container justifyContent='center' item
                 style={{minHeight: '216px', padding: blckTwttrTheme.spacing(0, 12)}}>
             <TextField
               color='secondary'
@@ -201,46 +138,9 @@ const EmailCaptureStep: FunctionComponent<StepProps> = ({lead, setLead}: StepPro
           </Grid>
         </Grid>
         <Grid container item justifyContent='center'>
-          <Button
-            disabled={isButtonDisabled}
-            color='primary'
-            variant='contained'
-            // disabled={!isFormValid() || formSubmitting}
-            aria-label='next to black verification questions'
-            classes={{disabled: classes.disabledButton}}
-            className={classes.button}
-            onClick={createLead}
-            fullWidth
-          >
-            {!formSubmitting &&
-              <Typography style={{fontFamily: 'Youth'}} variant='button'
-                          align='center'>{isButtonDisabled ? 'Please enter your email address...' : 'Submit'}</Typography>}
-            {
-              formSubmitting && <><CircularProgress color='inherit' size='22px'/>
-                <Typography
-                  variant='button'
-                  align='center'
-                  style={{marginLeft: blckTwttrTheme.spacing(2), fontFamily: 'Youth'}}>
-                  Now
-                  for Verification...
-                </Typography></>
-            }
-          </Button>
+          <VerificationQuestionCtaButton onClicked={createLead} isLoading={formSubmitting} disabledButtonText={'Please enter your email above.'} buttonText='Thank you! Submit.' isDisabled={isButtonDisabled} />
         </Grid>
       </Grid>
-      {/*</Grid>*/}
-      {/*<Hidden mdDown>*/}
-      {/*  <Grid item className={classes.geogrid}>*/}
-      {/*    /!*  This should be an image placeholder*!/*/}
-      {/*  </Grid>*/}
-      {/*</Hidden>*/}
-      {/*<Hidden lgUp>*/}
-      {/*  <Grid container item direction='column' className={classes.footer} alignContent='flex-end'>*/}
-      {/*    /!*<GeogridShapeContainer color='#FB7C6A' shape='triangleUpRight' pageIndicator/>*!/*/}
-      {/*    /!*<GeogridShapeContainer color='#CEE4D1' shape='triangleUpRight' fade pageIndicator/>*!/*/}
-      {/*    /!*<GeogridShapeContainer color='#FDF3EB' shape='triangleUpRight' pageIndicator/>*!/*/}
-      {/*  </Grid>*/}
-      {/*</Hidden>*/}
     </VerificationPageLayout>
   )
 }

@@ -1,5 +1,5 @@
 import sanityClient from '../../sanityClient'
-import { ColdLeadAttempt } from './PreSignup'
+import { ColdLeadAttempt } from '../../utils/Types'
 
 const createLead = (email: string): Promise<any> => {
   if(!email){

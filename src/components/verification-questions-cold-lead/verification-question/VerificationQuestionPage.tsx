@@ -1,27 +1,30 @@
 import { Button, CircularProgress, Grid, Typography } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
-import {
-  ImageHint,
-  SanityVerificationQuestion,
-  VerificationQuestionDifficultyEnum
-} from '../../../common/sanityIo/Types'
-import VerificationQuestion from './VerificationQuestion'
+
 import { useHistory, useLocation, useParams } from 'react-router-dom'
-import { ColdLead, StepProps } from '../PreSignup'
 import leadClient, { UpdateLeadRequest } from '../leadClient'
 import { RoutesEnum } from '../../../App'
-import blckTwttrTheme from '../../abReplica/common/Theme'
-import firebaseAnalyticsClient from '../../abReplica/firebaseAnalyticsClient'
-import { useStepStyles } from '../email-capture-step/Step1'
-import cmsClient from '../../abReplica/cmsClient'
-import EasyVerificationQuestionHeader from './easy/EasyVerificationQuestionHeader'
-import MediumVerificationQuestionHeader from './medium/MediumVerificationQuestionHeader'
-import HardVerificationQuestionHeader from './hard/HardVerificationQuestionHeader'
 import VerificationPageLayout from '../verification-results/VerificationPageLayout'
-import VerificationQuestionImage from './VerificationQuestionImage'
-import VerificationQuestionCategorySelector from './VerificationQuestionCategorySelector'
-import { SanityVerificationQuestionCategoryEnumType } from '../../../common/sanityIo/SanityVerificationCategory'
+import MediumVerificationQuestionHeader from './components/medium/MediumVerificationQuestionHeader'
+import VerificationQuestionCategorySelector
+  from './components/category-selector-modal/VerificationQuestionCategorySelector'
+import HardVerificationQuestionHeader from './components/hard/HardVerificationQuestionHeader'
+import VerificationQuestionImage from './components/VerificationQuestionImage'
+import VerificationQuestion from './components/VerificationQuestion'
+import { useStepStyles } from '../email-capture-step/EmailCaptureStep'
+import EasyVerificationQuestionHeader from './components/easy/EasyVerificationQuestionHeader'
+import {
+  ColdLead, ColdLeadAttempt,
+  SanityVerificationQuestion, SanityVerificationQuestionCategoryEnumType,
+  VerificationQuestionStepEnum,
+  VerificationStepProps
+} from '../../../utils/Types'
+import blckTwttrTheme from '../../theme/Theme'
+import firebaseAnalyticsClient from '../../shared/firebase/firebaseAnalyticsClient'
+import cmsClient from '../../shared/cms/cmsClient'
+import VerificationQuestionCtaButton from '../VerificationQuestionCtaButton'
+import cmsService from '../../shared/cms/cmsService'
 
 export const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -134,10 +137,7 @@ export const useStyles = makeStyles((theme: Theme) => ({
   }
 }))
 
-const VerificationQuestionPage: FunctionComponent<StepProps> = ({
-                                                                  lead,
-                                                                  imageVerificationQuestion
-                                                                }: StepProps) => {
+const VerificationQuestionPage: FunctionComponent<VerificationStepProps> = ({}: VerificationStepProps) => {
   const classes = useStepStyles(blckTwttrTheme)
   const history = useHistory()
   const {id, difficulty}: { id?: any, difficulty?: string } = useParams()
@@ -145,9 +145,9 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
   const [formSubmitting, setFormSubmitting] = React.useState(false)
   const [verificationQuestionQuestion, setVerificationQuestionQuestion] = React.useState<SanityVerificationQuestion>({})
   const [coldLead, setColdLead] = React.useState<ColdLead>()
-  const [nextQuestionDifficulty, setNextQuestionDifficulty] = React.useState<VerificationQuestionDifficultyEnum>()
+  const [nextQuestionDifficulty, setNextQuestionDifficulty] = React.useState<VerificationQuestionStepEnum>()
   const [headerText, setHeaderText] = React.useState<any>()
-
+  const [updateReqKeyValueName, setUpdateReqKeyValueName] = React.useState<string>('')
   const location = useLocation()
 
   React.useEffect(() => {
@@ -155,33 +155,40 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
 
     if (difficulty) {
       console.log('difficulty is', difficulty)
-      const difficultyEnum: VerificationQuestionDifficultyEnum = parseInt(difficulty)
+      const difficultyEnum: VerificationQuestionStepEnum = parseInt(difficulty)
 
-      let difficultyStr = 'Unknown'
+      let difficultyStr
       let translateDifficulty
       let translatedButtonText
       let translatedHeaderText
+      let keyValue
+
       switch (difficultyEnum) {
-        case VerificationQuestionDifficultyEnum.EASY:
+        case VerificationQuestionStepEnum.EASY:
+          keyValue = 'easyAttempt'
           difficultyStr = 'Easy'
-          translateDifficulty = VerificationQuestionDifficultyEnum.MEDIUM
+          translateDifficulty = VerificationQuestionStepEnum.MEDIUM
           translatedButtonText = 'Ok, next question...'
           translatedHeaderText = <EasyVerificationQuestionHeader/>
           break
-        case VerificationQuestionDifficultyEnum.MEDIUM:
+        case VerificationQuestionStepEnum.MEDIUM:
+          keyValue = 'mediumAttempt'
           difficultyStr = 'Medium'
-          translateDifficulty = VerificationQuestionDifficultyEnum.HARD
+          translateDifficulty = VerificationQuestionStepEnum.HARD
           translatedButtonText = '...aight cool, one more question...'
           translatedHeaderText = <MediumVerificationQuestionHeader/>
           break
-        case VerificationQuestionDifficultyEnum.HARD:
+        case VerificationQuestionStepEnum.HARD:
+          keyValue = 'hardAttempt'
           difficultyStr = 'Hard'
-          translateDifficulty = VerificationQuestionDifficultyEnum.IMAGE
+          translateDifficulty = VerificationQuestionStepEnum.DONE
           translatedButtonText = 'Submit Responses.'
           translatedHeaderText = <HardVerificationQuestionHeader/>
           break
         default:
-          translateDifficulty = VerificationQuestionDifficultyEnum.EASY
+          keyValue = 'easyAttempt'
+          difficultyStr = 'image'
+          translateDifficulty = VerificationQuestionStepEnum.EASY
           translatedButtonText = 'Ok, next question...'
 
       }
@@ -189,11 +196,14 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
       setButtonText(translatedButtonText)
       setNextQuestionDifficulty(translateDifficulty)
       setHeaderText(translatedHeaderText)
+      setUpdateReqKeyValueName(keyValue)
 
       if (location) {
         document.title = `BlckTwttr | Verification Question #BlackTwitterVerificationQuestions - ${difficultyStr}`
         firebaseAnalyticsClient.analyticsPageView(location.pathname, location.search, `${difficultyStr} Verification Question`)
       }
+    } else {
+      history.push(RoutesEnum.ENTRY_QUESTIONS)
     }
   }, [difficulty])
 
@@ -202,33 +212,24 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
       cmsClient.fetchColdLead(id).then((retrievedLead: ColdLead) => {
         setColdLead(retrievedLead)
       })
+    } else {
+      history.push(RoutesEnum.ENTRY_QUESTIONS)
     }
   }, [id])
 
   const [retries, setRetries] = React.useState<number>(0)
 
   const getRandomQuestion = async (categoryNumber?: any) => {
-    return cmsClient.fetchRandomVerificationQuestion(parseInt(difficulty ?? ''), categoryNumber).then((question) => {
-      if (question) {
-        setRetries(state => state + 1)
-        setVerificationQuestionQuestion(question)
-        return
-      } else {
-        // none of this difficulty in this category select from all questions
-        return cmsClient.fetchRandomVerificationQuestion(parseInt(difficulty ?? '')).then((questionAttempt2) => {
-          if (questionAttempt2) {
-            setRetries(state => state + 1)
-            setVerificationQuestionQuestion(questionAttempt2)
-          }
-        })
-      }
+    const difficultyInt = parseInt(difficulty ?? '')
+
+    return cmsService.fetchRandomVerificationQuestion(difficultyInt, categoryNumber).then((question) => {
+      setRetries(state => state + 1)
+      setVerificationQuestionQuestion(question)
+      return
     })
   }
 
   React.useEffect(() => {
-    // cmsClient.fetchRandomVerificationQuestion(parseInt(difficulty ?? '')).then((question) => {
-    //   setVerificationQuestionQuestion(question)
-    // })
     getRandomQuestion().then(() => {
     })
   }, [nextQuestionDifficulty])
@@ -240,33 +241,34 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
       setFormSubmitting(true)
 
       const verifyResponse = (response?.trim() === verificationQuestionQuestion?.correctAnswer?.trim())
-      console.log('Verifying the users response', verifyResponse, response, verificationQuestionQuestion?.correctAnswer)
+
       if (verifyResponse) {
         setIsVerified(true)
       }
 
       let keyValue
       switch (parseInt(difficulty ?? '')) {
-        case VerificationQuestionDifficultyEnum.EASY:
+        case VerificationQuestionStepEnum.EASY:
           keyValue = 'easyAttempt'
           break
-        case VerificationQuestionDifficultyEnum.HARD:
+        case VerificationQuestionStepEnum.HARD:
           keyValue = 'hardAttempt'
           break
-        case VerificationQuestionDifficultyEnum.MEDIUM:
+        case VerificationQuestionStepEnum.MEDIUM:
           keyValue = 'mediumAttempt'
-
           break
         default:
           keyValue = 'easyAttempt'
           break
       }
 
-      const attempt = {
+      const attempt: { [key in string]: ColdLeadAttempt } = {
         [keyValue]: {
           isVerified: verifyResponse,
           response: response ?? 'noResponseRecorded',
-          questionId: verificationQuestionQuestion?._id ?? ''
+          questionId: verificationQuestionQuestion?._id ?? '',
+          questionSlug: verificationQuestionQuestion?.slug?.current ?? '',
+          questionRef: cmsClient.utils.getSanityDocumentRef(verificationQuestionQuestion?._id ?? '')
         }
       }
 
@@ -275,15 +277,14 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
         ...attempt
       }
 
-      coldLead?._id && difficulty && attempt && firebaseAnalyticsClient.attemptSubmitted(coldLead._id, parseInt(difficulty), verificationQuestionQuestion.slug?.current ?? 'slugOmittedFromQuestion', attempt[keyValue])
+      coldLead?._id && difficulty && attempt && firebaseAnalyticsClient.attemptSubmitted(coldLead._id, parseInt(difficulty), attempt[keyValue])
 
       return leadClient.updateLead(updateLeadRequest).then((result: UpdateLeadRequest) => {
         setFormSubmitting(false)
         setResponse(undefined)
-        if (nextQuestionDifficulty === VerificationQuestionDifficultyEnum.IMAGE) {
+        if (nextQuestionDifficulty === VerificationQuestionStepEnum.DONE) {
           history.push(RoutesEnum.ENTRY_QUESTIONS_RESULTS + '/' + coldLead?._id)
         } else {
-
           history.push(RoutesEnum.ENTRY_QUESTIONS + '/' + nextQuestionDifficulty + '/' + coldLead?._id)
         }
       }).catch(() => {
@@ -301,19 +302,6 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
     }
   }, [verificationQuestionQuestion])
 
-  const [imageHint, setImageHint] = React.useState<ImageHint>()
-
-  React.useEffect(() => {
-    if (imageVerificationQuestion?.imageHints) {
-      const foundDifficultyImage = imageVerificationQuestion.imageHints.find((hint: ImageHint) => {
-        return hint.hintDifficulty == parseInt(difficulty ?? '-1')
-      })
-      if (foundDifficultyImage) {
-        setImageHint(foundDifficultyImage)
-      }
-    }
-  }, [imageVerificationQuestion])
-
   const handleSetCurrentCategory = (category: SanityVerificationQuestionCategoryEnumType) => {
     console.log('setting current category', category)
     if (category) {
@@ -321,7 +309,6 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
       })
     }
   }
-
 
   React.useEffect(() => {
     window.scrollTo({
@@ -338,7 +325,7 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
         {headerText}
       </Grid>
       <Grid container justifyContent='center' item spacing={3}>
-        {retries > 0 && <Typography>Retries: {retries}</Typography>}
+        {/*{retries > 0 && <Typography>Retries: {retries}</Typography>}*/}
         {
           verificationQuestionQuestion?.imageSrc
           && <VerificationQuestionImage imageSrc={verificationQuestionQuestion.imageSrc}/>
@@ -349,38 +336,13 @@ const VerificationQuestionPage: FunctionComponent<StepProps> = ({
         </Grid>
       </Grid>
       <Grid container item xs={11}>
-        <Button
-          color='primary'
-          variant='contained'
-          disabled={!response}
-          aria-label={`next question`}
-          classes={{disabled: classes.disabledButton}}
-          className={classes.button}
-          fullWidth
-          onClick={updateLead}
-        >
-          {!formSubmitting &&
-            <Typography style={{fontFamily: 'Youth'}} variant='button'
-                        align='center'>{!response ? 'Answer the Question' : buttonText}</Typography>}
-          {formSubmitting && <CircularProgress color='inherit' size='22px'/>}
-        </Button>
+        <VerificationQuestionCtaButton onClicked={updateLead} isLoading={formSubmitting} buttonText={buttonText}
+                                       isDisabled={!response} disabledButtonText={'Answer the Question.'}/>
         {verificationQuestionQuestion && verificationQuestionQuestion.category &&
           <VerificationQuestionCategorySelector currentCategory={verificationQuestionQuestion.category.category}
+                                                currentDifficulty={parseInt(difficulty ?? '')}
                                                 handleSetCurrentCategory={handleSetCurrentCategory}/>}
       </Grid>
-
-      {/*<Hidden mdDown>*/}
-      {/*  <Grid item className={classes.geogrid}>*/}
-      {/*    <CssGeogrid imageSrc={imageHint?.imageSrc}/>*/}
-      {/*  </Grid>*/}
-      {/*</Hidden>*/}
-      {/*<Hidden lgUp>*/}
-      {/*  <Grid container item direction='column' className={classes.footer} alignContent='flex-end'>*/}
-      {/*    /!*<GeogridShapeContainer color='#FB7C6A' shape='triangleUpRight' pageIndicator/>*!/*/}
-      {/*    /!*<GeogridShapeContainer color='#CEE4D1' shape='triangleUpRight' fade pageIndicator/>*!/*/}
-      {/*    /!*<GeogridShapeContainer color='#FDF3EB' shape='triangleUpRight' pageIndicator/>*!/*/}
-      {/*  </Grid>*/}
-      {/*</Hidden>*/}
     </VerificationPageLayout>
   )
 }

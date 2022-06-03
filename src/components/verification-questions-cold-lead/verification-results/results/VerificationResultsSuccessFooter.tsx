@@ -1,9 +1,8 @@
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
-import blckTwttrTheme from '../../../abReplica/common/Theme'
 import { Grid, Typography } from '@material-ui/core'
-import { useStepStyles } from '../../email-capture-step/Step1'
 import { motion } from 'framer-motion'
+import blckTwttrTheme from '../../../theme/Theme'
 
 export const useStyles = makeStyles((theme: Theme) => ({}))
 
@@ -12,11 +11,6 @@ interface IProps {
 }
 
 const VerificationResultsFailHeader: FunctionComponent<IProps> = (props) => {
-  const classes = useStepStyles(blckTwttrTheme)
-  React.useEffect(() => {
-
-  }, [])
-
   return (
     <Grid item container direction='column' alignItems='center'>
       <Grid item>

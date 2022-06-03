@@ -1,9 +1,7 @@
-import React, {FunctionComponent} from 'react'
-import {makeStyles, Theme} from "@material-ui/core/styles"
-import { useStepStyles } from '../../step-1/Step1'
-import blckTwttrTheme from '../../../abReplica/common/Theme'
+import React, { FunctionComponent } from 'react'
+import { makeStyles, Theme } from '@material-ui/core/styles'
 import { Grid, Typography } from '@material-ui/core'
-import {motion} from 'framer-motion'
+
 export const useStyles = makeStyles((theme: Theme) => ({
 
 }))
@@ -13,7 +11,6 @@ interface IProps {
 }
 
 const MediumVerificationQuestionHeader: FunctionComponent<IProps> = (props) => {
-  const classes = useStepStyles(blckTwttrTheme)
   React.useEffect(() => {
 
   }, [])
