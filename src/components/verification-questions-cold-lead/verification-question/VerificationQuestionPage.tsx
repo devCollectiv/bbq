@@ -25,6 +25,7 @@ import firebaseAnalyticsClient from '../../shared/firebase/firebaseAnalyticsClie
 import cmsClient from '../../shared/cms/cmsClient'
 import VerificationQuestionCtaButton from '../VerificationQuestionCtaButton'
 import cmsService from '../../shared/cms/cmsService'
+import VerificationQuestionPageContent from './components/VerificationQuestionPageContent'
 
 export const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -325,15 +326,7 @@ const VerificationQuestionPage: FunctionComponent<VerificationStepProps> = ({}: 
         {headerText}
       </Grid>
       <Grid container justifyContent='center' item spacing={3}>
-        {/*{retries > 0 && <Typography>Retries: {retries}</Typography>}*/}
-        {
-          verificationQuestionQuestion?.imageSrc
-          && <VerificationQuestionImage imageSrc={verificationQuestionQuestion.imageSrc}/>
-        }
-        <Grid item xs={12} sm={6} container justifyContent='center'>
-          <VerificationQuestion handleSetSelectedResponse={(passedResponse) => setResponse(passedResponse)}
-                                verificationQuestion={verificationQuestionQuestion}/>
-        </Grid>
+        <VerificationQuestionPageContent handleResponse={(userResponse)=>setResponse(userResponse)} verificationQuestion={verificationQuestionQuestion} />
       </Grid>
       <Grid container item xs={11}>
         <VerificationQuestionCtaButton onClicked={updateLead} isLoading={formSubmitting} buttonText={buttonText}

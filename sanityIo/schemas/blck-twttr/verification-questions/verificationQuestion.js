@@ -3,20 +3,6 @@ export default {
   title: 'Verification Question',
   type: 'document',
   fields: [
-
-    {
-      name: 'levelOfDifficulty',
-      title: 'Level of Difficulty',
-      type: 'number',
-      options: {
-        list: [
-          {title: 'Easy', value: 0},
-          {title: 'Medium', value: 1},
-          {title: 'Hard', value: 2},
-          {title: 'Image', value: 3}
-        ]
-      }
-    },
     {
       name: 'imageSrc',
       title: 'Image Hint',
@@ -48,6 +34,19 @@ export default {
       of: [{type: 'string'}]
     },
     {
+      name: 'levelOfDifficulty',
+      title: 'Level of Difficulty',
+      type: 'number',
+      options: {
+        list: [
+          {title: 'Easy', value: 0},
+          {title: 'Medium', value: 1},
+          {title: 'Hard', value: 2},
+          {title: 'Image', value: 3}
+        ]
+      }
+    },
+    {
       name: 'category',
       title: 'Category',
       type: 'questionCategory'
@@ -56,6 +55,11 @@ export default {
       name: 'isEnabled',
       title: 'Enabled?',
       type: 'boolean'
+    },
+    {
+      name: 'userInfo',
+      title: 'If a user proposed this question',
+      type: 'userInfo'
     }
   ],
   preview: {

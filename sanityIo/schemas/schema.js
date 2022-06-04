@@ -9,6 +9,7 @@ import coldLeadAttempt from './blck-twttr/coldLeadAttempt'
 import imageVerificationQuestion from './blck-twttr/verification-questions/imageVerificationQuestion'
 import imageHint from './blck-twttr/verification-questions/imageHint'
 import questionCategory from './blck-twttr/verification-questions/questionCategory'
+import userInfo from './blck-twttr/verification-questions/userInfo'
 
 // We import object and document schemas
 
@@ -28,6 +29,7 @@ export default createSchema({
     imageHint,
     imageVerificationQuestion,
     verificationQuestion,
-    questionCategory
+    questionCategory,
+    userInfo
   ]),
 })

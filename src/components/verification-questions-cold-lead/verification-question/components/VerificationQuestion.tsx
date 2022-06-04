@@ -8,7 +8,7 @@ export const useStyles = makeStyles((theme: Theme) => ({}))
 
 interface IProps {
   verificationQuestion: SanityVerificationQuestion
-  handleSetSelectedResponse(response:string): void
+  handleSetSelectedResponse?(response:string): void
 }
 
 const VerificationQuestion: FunctionComponent<IProps> = ({verificationQuestion, handleSetSelectedResponse}) => {
@@ -28,7 +28,7 @@ const VerificationQuestion: FunctionComponent<IProps> = ({verificationQuestion, 
   }, [verificationQuestion])
 
   React.useEffect(()=>{
-      handleSetSelectedResponse(selectedResponse)
+    handleSetSelectedResponse && handleSetSelectedResponse(selectedResponse)
   },[selectedResponse])
 
   return (

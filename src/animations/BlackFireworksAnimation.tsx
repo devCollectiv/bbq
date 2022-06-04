@@ -21,7 +21,7 @@ const BlackFireworksAnimation: FunctionComponent = (props) => {
           opacity: [0, 1, 0],
           scale: [0, 1, 0]
         }}
-        transition={{duration: 2.25}}
+        transition={{duration: 2, delay: .25}}
       >
         <img src={blackFireworks}/>
       </motion.div>
@@ -37,7 +37,7 @@ const BlackFireworksAnimation: FunctionComponent = (props) => {
           opacity: [0, 1, 0],
           scale: [0, .5, 0]
         }}
-        transition={{duration: 1.5}}
+        transition={{duration: 1.5, delay: 1.5}}
       >
         <img src={blackFireworks}/>
       </motion.div>
@@ -53,7 +53,9 @@ const BlackFireworksAnimation: FunctionComponent = (props) => {
           opacity: [0, .5, 0],
           scale: [0, .75, 0]
         }}
-        transition={{duration: 1.25}}
+        transition={{
+          duration: 1.25, delay: 1
+        }}
       >
         <img src={blackFireworks}/>
       </motion.div>

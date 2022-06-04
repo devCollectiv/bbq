@@ -1,5 +1,6 @@
 import imageUrlBuilder from '@sanity/image-url'
 import {
+  AddVerificationQuestionState,
   ColdLead, SanityCategoryDifficultyType, SanityImageVerificationQuestion,
   SanityRef,
   SanityVerificationQuestion,
@@ -7,6 +8,10 @@ import {
 } from '../../../utils/Types'
 import sanityClient from '../../../sanityClient'
 import { SanityVerificationQuestionCategoryEnumKeys } from '../enum/SanityVerificationCategory'
+import cmsClient from './cmsClient'
+import { v4 as uuidv4 } from 'uuid'
+import verificationQuestion
+  from '../../verification-questions-cold-lead/verification-question/components/VerificationQuestion'
 
 
 export type SanityMenuItem = {
@@ -70,16 +75,28 @@ const utils = {
   urlFor: (source: SanityImage) => {
     return source && source.asset ? builder.image(source) : undefined
   },
-  convertToSlug: (slugStr: string) => {
+  convertToSlugStr: (slugStr: string) => {
     return slugStr
       .toLowerCase()
       .replace(/ /g, '-')
       .replace(/[^\w-]+/g, '')
   },
-  getSanityDocumentRef:(sanityId: string): SanityRef => ({
+  convertToSlugObj: (slugStr: string):SanitySlug => {
+    return {
+      _type: "slug",
+      current: slugStr
+    }
+  },
+  getSanityDocumentRef: (sanityId: string): SanityRef => ({
     _type: 'reference',
-    _ref: sanityId,
-  })
+    _ref: sanityId
+  }),
+  getSanityKeyedValue: (value: any) => {
+    return {
+      _key: uuidv4(),
+      value: value
+    }
+  }
 }
 
 const fetchRef = (sanityRef: SanityRef): Promise<any> => {
@@ -115,9 +132,9 @@ const fetchAllVerificationQuestionsForDifficulty = (verificationQuestionDifficul
       verificationDifficulty = VerificationQuestionStepEnum.EASY
   }
 
-    return sanityClient
-      .fetch(
-        `*[_type == "verificationQuestion" && levelOfDifficulty == $verificationDifficulty  && isEnabled == true]{
+  return sanityClient
+    .fetch(
+      `*[_type == "verificationQuestion" && levelOfDifficulty == $verificationDifficulty  && isEnabled == true]{
           _id,
           slug,
           levelOfDifficulty,
@@ -134,10 +151,10 @@ const fetchAllVerificationQuestionsForDifficulty = (verificationQuestionDifficul
              category
           },
        }`,
-        {verificationDifficulty}
-      ).then((data: any[]) => {
-        return data
-      })
+      {verificationDifficulty}
+    ).then((data: any[]) => {
+      return data
+    })
 }
 
 const fetchColdLead = (leadId: string): Promise<ColdLead> => {
@@ -178,12 +195,12 @@ const fetchColdLead = (leadId: string): Promise<ColdLead> => {
     })
 }
 
-const getAllVerificationQuestionCategoriesAndDifficulties = ():Promise<SanityCategoryDifficultyType[]> => {
+const getAllVerificationQuestionCategoriesAndDifficulties = (): Promise<SanityCategoryDifficultyType[]> => {
   console.log('getAllVerificationQuestionCategoriesAndDifficulties')
 
   return sanityClient
     .fetch(
-      `*[_type=='verificationQuestion']{
+      `*[_type=='verificationQuestion' && isEnabled == true]{
           levelOfDifficulty,
           "category": category.category
         }`
@@ -192,7 +209,7 @@ const getAllVerificationQuestionCategoriesAndDifficulties = ():Promise<SanityCat
     })
 }
 
-const getAllVerificationQuestionByCategoryAndDifficulty = (verificationDifficulty: VerificationQuestionStepEnum, categoryNumber: SanityVerificationQuestionCategoryEnumKeys):Promise<SanityVerificationQuestion[]> => {
+const getAllVerificationQuestionByCategoryAndDifficulty = (verificationDifficulty: VerificationQuestionStepEnum, categoryNumber: SanityVerificationQuestionCategoryEnumKeys): Promise<SanityVerificationQuestion[]> => {
   console.log('getAllVerificationQuestionCategoriesAndDifficulties')
 
   return sanityClient
@@ -220,11 +237,108 @@ const getAllVerificationQuestionByCategoryAndDifficulty = (verificationDifficult
     })
 }
 
+export const createVerificationQuestion = (proposedQuestion: AddVerificationQuestionState): Promise<SanityVerificationQuestion> => {
+  console.log('About to create a verification Question', proposedQuestion)
+
+  let incorrectAnswerArr: any[] = []
+
+  if (proposedQuestion.incorrect1) {
+    incorrectAnswerArr = incorrectAnswerArr.concat(proposedQuestion.incorrect1)
+  }
+  if (proposedQuestion.incorrect2) {
+    incorrectAnswerArr = incorrectAnswerArr.concat(proposedQuestion.incorrect2)
+  }
+  if (proposedQuestion.incorrect3) {
+    incorrectAnswerArr = incorrectAnswerArr.concat(proposedQuestion.incorrect3)
+  }
+
+  if (proposedQuestion.coldLeadId && proposedQuestion.question) {
+    const createVerificationQuestionRequest: SanityVerificationQuestion&{slug: SanitySlug} = {
+      question: proposedQuestion.question,
+      slug: cmsClient.utils.convertToSlugObj(cmsClient.utils.convertToSlugStr(proposedQuestion.question)),
+      correctAnswer: proposedQuestion.correctAnswer,
+      incorrectAnswers: incorrectAnswerArr,
+      userInfo: {
+        userRef: utils.getSanityDocumentRef(proposedQuestion.coldLeadId),
+        proposedCategory: proposedQuestion.proposedCategory
+      }
+    }
+
+    return sanityClient
+      .create({
+        ...createVerificationQuestionRequest,
+        _type: 'verificationQuestion'
+      }).then((res: any) => {
+        console.log('result from create veriQ', res)
+        return res
+      })
+  }
+
+  return Promise.reject(Error('No User Id'))
+}
+
+const uploadVerificationQuestionImage = (blob: any, verificationQuestionId: string): Promise<SanityVerificationQuestion> => {
+  return sanityClient.assets
+    .upload('image',
+      blob,
+      {filename: verificationQuestionId})
+    .then(imageAsset => sanityClient
+      .patch(verificationQuestionId)
+      .set({
+        imageSrc: {
+          _type: 'image',
+          asset: {
+            _type: 'reference',
+            _ref: imageAsset._id
+          }
+        }
+      })
+      .commit())
+    .then((newVerificationQuestion: any) => {
+      console.log('Done uploading ball flyer image asset to Sanity!')
+      return newVerificationQuestion
+    }).catch((e) => {
+      return Promise.reject(Error('Error uploading image asset to sanity. Error: ' + e.toString()))
+    })
+}
+
+const fetchVerificationQuestion = (questionId:string) =>{
+    console.log('fetchVerificationQuestion')
+
+    return sanityClient
+      .fetch(
+        `*[_type == "verificationQuestion" && _id == $questionId && isEnabled != true]{
+          _id,
+          slug,
+          levelOfDifficulty,
+          question,
+          correctAnswer,
+          incorrectAnswers[],
+          imageSrc{
+            asset->{
+              url,
+              metadata
+             }
+          },
+          category{
+             category
+          },
+       }`,
+        {questionId}
+      ).then((data: SanityVerificationQuestion[]) => {
+        console.log("THe verification question raw", data)
+        return data[0]
+      })
+}
+
 export default {
   fetchRef,
   fetchAllVerificationQuestionsForDifficulty,
   fetchColdLead,
   getAllVerificationQuestionCategoriesAndDifficulties,
   getAllVerificationQuestionByCategoryAndDifficulty,
+  createVerificationQuestion,
+  uploadVerificationQuestionImage,
+  fetchVerificationQuestion,
   utils
 }

@@ -1,4 +1,4 @@
-import { Card, Grid, Typography } from '@material-ui/core'
+import { Button, Card, Grid, Typography } from '@material-ui/core'
 import React, { FunctionComponent } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import { useHistory, useLocation, useParams } from 'react-router-dom'
@@ -10,12 +10,12 @@ import VerificationResultsFailFooter from './results/VerificationResultsFailFoot
 import { motion } from 'framer-motion'
 import VerificationPageLayout from './VerificationPageLayout'
 import { useStepStyles } from '../email-capture-step/EmailCaptureStep'
-import AddVerificationQuestionModalButton from '../add-verification-question-modal/AddVerificationQuestionModalButton'
 import BlackFireworksAnimation from '../../../animations/BlackFireworksAnimation'
 import { ColdLead, SanityReportCard, VerificationStepProps } from '../../../utils/Types'
 import blckTwttrTheme from '../../theme/Theme'
 import firebaseAnalyticsClient from '../../shared/firebase/firebaseAnalyticsClient'
 import cmsClient from '../../shared/cms/cmsClient'
+import { RoutesEnum } from '../../../App'
 
 export const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -144,6 +144,10 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
     }
   }, [])
 
+  const goToAddQuestion = () => {
+    console.log('submit all form fields to cms client craete question')
+    coldLead && history.push(RoutesEnum.ADD_ENTRY_QUESTION + '/' + coldLead._id)
+  }
 
   const {id}: { id: string } = useParams()
   const [coldLead, setColdLead] = React.useState<ColdLead>()
@@ -188,7 +192,7 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
 
   const questionResultBlackCard = () => {
     return <Grid container item xs={5} justifyContent='center' style={{marginBottom: '32px', position: 'relative'}}>
-      {leadBlackCard?.isVerified && <BlackFireworksAnimation />}
+      {leadBlackCard?.isVerified && <BlackFireworksAnimation/>}
       <Card style={{
         position: 'relative',
         backgroundColor: '#3b3b3b',
@@ -197,8 +201,8 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
         minWidth: '382px'
       }}>
         <motion.div
-          initial={{opacity:0, scale: 2.5}}
-          animate={{opacity:1, scale: 1}}
+          initial={{opacity: 0, scale: 2.5}}
+          animate={{opacity: 1, scale: 1}}
           transition={{duration: .75}}
         >
           <Grid container item justifyContent='center'>
@@ -311,7 +315,17 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
       </Grid>
       <Grid item container justifyContent='center'>
         <Grid container item xs={10} justifyContent='center'>
-          <AddVerificationQuestionModalButton />
+          <Button
+            aria-label='submit a question'
+            color='secondary'
+            variant='outlined'
+            style={{borderRadius: '20px', padding: blckTwttrTheme.spacing(1, 8)}}
+            onClick={() => goToAddQuestion()}
+          >
+            <Typography variant='button' align='center' style={{textTransform: 'capitalize'}}>
+              Add a #BlackTwitterVerificationQuestion
+            </Typography>
+          </Button>
         </Grid>
       </Grid>
     </VerificationPageLayout>

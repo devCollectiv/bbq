@@ -49,6 +49,10 @@ export type SanityVerificationQuestion = {
   correctAnswer?: string
   incorrectAnswers?: string[]
   levelOfDifficulty?: VerificationQuestionStepEnum
+  userInfo?: {
+    userRef: SanityRef,
+    proposedCategory?: string
+  }
 }
 
 export enum  VerificationQuestionStepEnum {
@@ -107,4 +111,15 @@ export type VerificationStepProps ={
 export type SanityCategoryDifficultyType = {
 levelOfDifficulty: VerificationQuestionStepEnum,
   category: SanityVerificationQuestionCategoryEnumKeys
+}
+
+
+export type AddVerificationQuestionState = {
+  question?:string
+  correctAnswer?:string
+  incorrect1?:string
+  incorrect2?:string
+  incorrect3?:string
+  coldLeadId?: string
+  proposedCategory?: string
 }

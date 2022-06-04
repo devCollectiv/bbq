@@ -1,6 +1,10 @@
 import cmsClient from './cmsClient'
 import SanityVerificationCategory from '../enum/SanityVerificationCategory'
-import { SanityVerificationQuestion, VerificationQuestionStepEnum } from '../../../utils/Types'
+import {
+  AddVerificationQuestionState,
+  SanityVerificationQuestion,
+  VerificationQuestionStepEnum
+} from '../../../utils/Types'
 import sanityClient from '../../../sanityClient'
 
 const getCategoryCountsByDifficulty = async (): Promise<any[][]> => {
@@ -58,7 +62,22 @@ const fetchRandomVerificationQuestion = async (verificationQuestionDifficulty: V
   return allQuestionsForDifficulty[randomQuestionIndex]
 }
 
+const saveVerificationQuestion = async (proposedVerificationQuestion: AddVerificationQuestionState, blob?: any) => {
+  if (proposedVerificationQuestion.coldLeadId) {
+    // upload image get id
+    // create verification question
+    //need the blob
+    const newQuestion = await cmsClient.createVerificationQuestion(proposedVerificationQuestion)
+    if (newQuestion._id && blob) {
+      await cmsClient.uploadVerificationQuestionImage(blob, newQuestion._id)
+    }
+
+    return newQuestion
+  }
+}
+
 export default {
   fetchRandomVerificationQuestion,
-  getCategoryCountsByDifficulty
+  getCategoryCountsByDifficulty,
+  saveVerificationQuestion
 }
