@@ -14,30 +14,6 @@ const analytics = initializeAnalytics(firebaseClient.app, {
   }
 })
 
-
-// const analyticsUserSignUp = (provider: string) => {
-//   console.log('Firebase Analytics user Signup', provider)
-//   firebaseClient.app.analytics().logEvent('sign_up', {
-//     method: provider,
-//   })
-// }
-//
-// const analyticsUserLogIn = (userId: string, provider: string) => {
-//   console.log('Firebase Analytics user Login', provider)
-//   firebaseClient.app.analytics().logEvent('login', {
-//     method: provider,
-//     id: userId,
-//   })
-// }
-//
-// const analyticsUserLogOut = (userId: string, provider: string) => {
-//   console.log('Firebase Analytics user logout', provider)
-//   firebaseClient.app.analytics().logEvent('logout', {
-//     method: provider,
-//     id: userId,
-//   })
-// }
-
 const analyticsPageView = (pathname: string, search: string, title: string) => {
   console.log('GA pageView ', pathname, search, title)
 
@@ -52,25 +28,27 @@ const analyticsPageView = (pathname: string, search: string, title: string) => {
   }
 }
 
-
-const logEventWithData = (eventName: string, data: any) => {
-  logEvent(analytics, eventName, data)
+const utils = {
+  logEventWithData: (eventName: string, data: any) => {
+    logEvent(analytics, eventName, data)
+  }
 }
 
+
 const emailSubmittedEvent = (email: string, leadId: string) => {
-  logEventWithData('email_submitted', {
+  utils.logEventWithData('email_submitted', {
     email: email,
     leadId: leadId
   })
 }
 const emailTypedEvent = (currentEmail: string) => {
-  logEventWithData('email_validated', {
+  utils.logEventWithData('email_validated', {
     email: currentEmail
   })
 }
 
 const attemptSubmitted = (leadId: string, levelOfDifficulty: VerificationQuestionStepEnum, verificationQuestion: ColdLeadAttempt) => {
-  logEventWithData('attempt_submitted', {
+  utils.logEventWithData('attempt_submitted', {
     leadId: leadId,
     ...verificationQuestion,
     levelOfDifficulty: levelOfDifficulty
@@ -78,69 +56,125 @@ const attemptSubmitted = (leadId: string, levelOfDifficulty: VerificationQuestio
 }
 
 const attemptStarted = (leadId: string, verificationQuestion: SanityVerificationQuestion) => {
-  logEventWithData('attempt_started', {
+  utils.logEventWithData('attempt_started', {
     leadId: leadId,
     // questionSlug: verificationQuestion.slug?.current,
     levelOfDifficulty: verificationQuestion.levelOfDifficulty
   })
 }
 
-const reportCardSuccess = (leadId: string) => {
-  logEventWithData('report_card_success', {
+const blackCardSuccess = (leadId: string) => {
+  utils.logEventWithData('black_card_success', {
     leadId: leadId,
   })
 }
 
-const reportCardFail = (leadId: string) => {
-  logEventWithData('report_card_fail', {
+const blackCardFail = (leadId: string) => {
+  utils.logEventWithData('black_card_fail', {
     leadId: leadId,
   })
 }
 
-const reportCardViewed = (leadId: string, reportCard: SanityReportCard) => {
-  logEventWithData('report_card_viewed', {
+const blackCardViewed = (leadId: string, blackCard: SanityReportCard) => {
+  utils.logEventWithData('black_card_viewed', {
     leadId: leadId,
-    ...reportCard
+    ...blackCard
   })
 }
 
-// const analyticsFavoritedABall = (ballSlug: string) => {
-//   console.log('GA favorite ball', ballSlug)
-//
-//   firebaseClient.app.analytics().logEvent('add_favorite_ball', {
-//     slug: ballSlug,
-//   })
-// }
-//
-// const analyticsUnfavoriteABall = (ballSlug: string) => {
-//   console.log('GA unfavorite ball', ballSlug)
-//
-//   firebaseClient.app.analytics().logEvent('remove_favorite_ball', {
-//     slug: ballSlug,
-//   })
-// }
-//
-// const analyticsViewBall = (ball: SanityBall) => {
-//   console.log('GA ballView ', ball)
-//
-//   firebaseClient.app.analytics().logEvent('ball_view', {
-//     ...ball,
-//   })
-// }
+const addQuestionClicked = (leadId: string) => {
+  utils.logEventWithData('add_question_click', {
+    leadId: leadId,
+  })
+}
+
+const veriQImageUploaded = (leadId: string) => {
+  utils.logEventWithData('proposed_question_image_upload', {
+    leadId: leadId,
+  })
+}
+
+const veriQQuestionEntered = (leadId: string, question: string) => {
+  utils.logEventWithData('proposed_question_question_entered', {
+    leadId: leadId,
+    question: question,
+  })
+}
+
+const veriQQuestionCorrectAnswerEntered = (leadId: string, correctAnswer: string) => {
+  utils.logEventWithData('proposed_question_correct_answer_entered', {
+    leadId: leadId,
+    correctAnswer: correctAnswer,
+  })
+}
+
+const veriQQuestionInCorrectAnswerEntered = (leadId: string, incorrectAnswer: string) => {
+  utils.logEventWithData('proposed_question_incorrect_answer_entered', {
+    leadId: leadId,
+    incorrectAnswer: incorrectAnswer
+  })
+}
+
+const veriQQuestionCategoryEntered = (leadId: string, category: string) => {
+  utils.logEventWithData('proposed_question_category_entered', {
+    leadId: leadId,
+    category: category
+  })
+}
+
+const veriQQuestionSubmitted = (leadId: string, question:string, correctAnswer: string) => {
+  utils.logEventWithData('proposed_question_submitted', {
+    leadId: leadId,
+    question: question,
+    correctAnswer: correctAnswer
+  })
+}
+
+const veriQQuestionSubmittedSuccess = (leadId: string, questionId:string, questionSlug:string) => {
+  utils.logEventWithData('proposed_question_submitted_success', {
+    leadId: leadId,
+    questionId: questionId,
+    questionSlug: questionSlug
+  })
+}
+const veriQResponseClickedAnyway = (questionId:string, questionSlug:string) => {
+  utils.logEventWithData('user_clicking_untriggered_responses', {
+    questionId: questionId,
+    questionSlug: questionSlug
+  })
+}
+
+enum SocialMediaEnum {
+  TWITTER="twitter",
+  FACEBOOK="facebook",
+  INSTAGRAM="instagram"
+}
+const twitterLinkClicked = (id:string, questionId:string) => {
+  utils.logEventWithData('social_link_clicked', {
+    leadId: id,
+    questionId: questionId,
+    social: SocialMediaEnum.TWITTER
+  })
+}
+
 
 export default {
-  // analyticsFavoritedABall,
+  veriQQuestionCorrectAnswerEntered,
+  veriQQuestionSubmittedSuccess,
+  veriQQuestionSubmitted,
+  veriQQuestionCategoryEntered,
+  veriQQuestionInCorrectAnswerEntered,
   analyticsPageView,
   emailTypedEvent,
   emailSubmittedEvent,
   attemptStarted,
   attemptSubmitted,
-  reportCardViewed,
-  reportCardSuccess,
-  reportCardFail
-  // analyticsViewBall,
-  // analyticsUserSignUp,
-  // analyticsUnfavoriteABall,
-  // analyticsUserLogIn,
-  // analyticsUserLogOut,
+  blackCardViewed,
+  blackCardSuccess,
+  blackCardFail,
+  addQuestionClicked,
+  veriQImageUploaded,
+  veriQQuestionEntered,
+  veriQResponseClickedAnyway,
+  twitterLinkClicked
 }

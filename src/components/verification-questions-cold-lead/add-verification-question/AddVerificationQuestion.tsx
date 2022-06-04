@@ -52,6 +52,7 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
 
   const submitQuestion = async () => {
     setFormSubmitting(true)
+    coldLead?._id && potentialVerificationQuestion.question && potentialVerificationQuestion.correctAnswer && firebaseAnalyticsClient.veriQQuestionSubmitted(coldLead._id, potentialVerificationQuestion.question, potentialVerificationQuestion.correctAnswer)
 
     let newQuestion
     if (coldLead) {
@@ -60,8 +61,16 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
         coldLeadId: coldLead._id
       }, fileUploadStatus?.fileUploaded)
     }
+
+    coldLead?._id
+    && potentialVerificationQuestion.question
+    && newQuestion?._id
+    && newQuestion.slug
+    && firebaseAnalyticsClient.veriQQuestionSubmittedSuccess(coldLead._id, newQuestion._id, newQuestion.slug.current)
+
     setFormSubmitting(false)
-    history.push(RoutesEnum.ADD_ENTRY_QUESTION_RESULT+"/"+ newQuestion?._id)
+
+    history.push(RoutesEnum.ADD_ENTRY_QUESTION_RESULT + '/' + newQuestion?._id)
   }
 
   const handleChangeValue = (event: any) => {
@@ -99,10 +108,13 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
         <Grid container item direction='column' spacing={5} alignItems='center'>
           <Grid container item direction='column' spacing={3} xs={10}>
             <Grid item container justifyContent='center'>
-              <VerificationQuestionImageInput handleSetImage={handleSetImage}/>
+              <VerificationQuestionImageInput coldLeadId={coldLead?._id} handleSetImage={handleSetImage}/>
             </Grid>
             <Grid container item>
               <TextField
+                onBlur={(e) => {
+                  coldLead?._id && potentialVerificationQuestion.question && firebaseAnalyticsClient.veriQQuestionEntered(coldLead._id, potentialVerificationQuestion.question)
+                }}
                 label='Question'
                 color={formFieldColor}
                 variant={formFieldVariant}
@@ -116,6 +128,9 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
             <Grid item>
 
               <TextField
+                onBlur={(e) => {
+                  coldLead?._id && potentialVerificationQuestion.correctAnswer && firebaseAnalyticsClient.veriQQuestionCorrectAnswerEntered(coldLead._id, potentialVerificationQuestion.correctAnswer)
+                }}
                 label='Correct Answer'
                 color={formFieldColor}
                 variant={formFieldVariant}
@@ -126,6 +141,9 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
             </Grid>
             <Grid item>
               <TextField
+                onBlur={(e) => {
+                  coldLead?._id && potentialVerificationQuestion.incorrect1 && firebaseAnalyticsClient.veriQQuestionInCorrectAnswerEntered(coldLead._id, potentialVerificationQuestion.incorrect1)
+                }}
                 label='Incorrect Answer 1'
                 color={formFieldColor}
                 variant={formFieldVariant}
@@ -137,6 +155,9 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
             </Grid>
             <Grid item>
               <TextField
+                onBlur={(e) => {
+                  coldLead?._id && potentialVerificationQuestion.incorrect2 && firebaseAnalyticsClient.veriQQuestionInCorrectAnswerEntered(coldLead._id, potentialVerificationQuestion.incorrect2)
+                }}
                 label='Incorrect Answer 2'
                 color={formFieldColor}
                 variant={formFieldVariant}
@@ -148,6 +169,9 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
             </Grid>
             <Grid item>
               <TextField
+                onBlur={(e) => {
+                  coldLead?._id && potentialVerificationQuestion.incorrect3 && firebaseAnalyticsClient.veriQQuestionInCorrectAnswerEntered(coldLead._id, potentialVerificationQuestion.incorrect3)
+                }}
                 label='Incorrect Answer 3'
                 color={formFieldColor}
                 variant={formFieldVariant}
@@ -159,6 +183,9 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
 
             <Grid item>
               <TextField
+                onBlur={(e) => {
+                  coldLead?._id && potentialVerificationQuestion.proposedCategory && firebaseAnalyticsClient.veriQQuestionInCorrectAnswerEntered(coldLead._id, potentialVerificationQuestion.proposedCategory)
+                }}
                 label='Category'
                 color={formFieldColor}
                 variant={formFieldVariant}

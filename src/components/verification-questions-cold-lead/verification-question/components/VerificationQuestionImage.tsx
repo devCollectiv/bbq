@@ -65,7 +65,7 @@ const VerificationQuestionImage: FunctionComponent<IProps> = (props) => {
   }, [props.imageDataUrl])
 
   return (
-    <Grid item xs={12} md={6} container justifyContent='center'>
+    <Grid item xs={12} container justifyContent='center'>
       {imageSrcUrl && <Card style={{
         overflow: 'scroll',
         borderRadius: '16px',

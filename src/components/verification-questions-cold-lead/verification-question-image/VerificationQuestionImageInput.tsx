@@ -1,16 +1,15 @@
 import React, { FunctionComponent, useRef } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
-import { Button, Card, FormControlLabel, FormGroup, Grid, Hidden, TextField, Typography } from '@material-ui/core'
-import { TouchApp } from '@material-ui/icons'
+import { Button, FormControlLabel, FormGroup, Grid, TextField, Typography } from '@material-ui/core'
 
 import { motion } from 'framer-motion'
-import blckTwttrTheme from '../../theme/Theme'
-import cmsClient, { SanityImage } from '../../shared/cms/cmsClient'
 import VerificationQuestionImage from '../verification-question/components/VerificationQuestionImage'
+import firebaseAnalyticsClient from '../../shared/firebase/firebaseAnalyticsClient'
 
 export const useStyles = makeStyles((theme: Theme) => ({}))
 
 interface IProps {
+  coldLeadId?: string
   handleSetImage?({imageFileDataUrl, fileUploadState}:{imageFileDataUrl:string, fileUploadState:any}): void
 }
 
@@ -21,6 +20,7 @@ const VerificationQuestionImageInput: FunctionComponent<IProps> = (props) => {
   const [fileUploadState,setFileUploadState] = React.useState<any>()
   React.useEffect(() => {
     if (uploadedImageDataUrl && props.handleSetImage) {
+      props.coldLeadId && firebaseAnalyticsClient.veriQImageUploaded(props.coldLeadId)
       props.handleSetImage({imageFileDataUrl:uploadedImageDataUrl, fileUploadState})
     }
   }, [uploadedImageDataUrl, fileUploadState])

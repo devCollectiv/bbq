@@ -22,6 +22,8 @@ import { RoutesEnum } from '../../../App'
 import VerificationQuestionPageContent from '../verification-question/components/VerificationQuestionPageContent'
 import AddVerificationQuestionCompleteHeader from './AddVerificationQuestionCompleteHeader'
 import { PanTool } from '@material-ui/icons'
+import AddVerificationQuestionCompleteFarewell
+  from '../verification-question/components/AddVerificationQuestionCompleteFarewell'
 
 
 const AddVerificationQuestionComplete: FunctionComponent<VerificationStepProps> = ({}: VerificationStepProps) => {
@@ -34,12 +36,12 @@ const AddVerificationQuestionComplete: FunctionComponent<VerificationStepProps> 
     }
   }, [])
 
-  const {questionId}: {questionId:string } = useParams()
+  const {questionId}: { questionId: string } = useParams()
 
   const [potentialVerificationQuestion, setPotentialVerificationQuestion] = React.useState<AddVerificationQuestionState>({})
   React.useEffect(() => {
-    if(questionId) {
-      cmsClient.fetchVerificationQuestion(questionId).then((retrievedQuestion:SanityVerificationQuestion)=>{
+    if (questionId) {
+      cmsClient.fetchVerificationQuestion(questionId).then((retrievedQuestion: SanityVerificationQuestion) => {
         setPotentialVerificationQuestion(retrievedQuestion)
       })
     }
@@ -54,10 +56,10 @@ const AddVerificationQuestionComplete: FunctionComponent<VerificationStepProps> 
         </Grid>
       </Grid>
       <Grid container justifyContent='center' item>
-        <VerificationQuestionPageContent verificationQuestion={potentialVerificationQuestion} />
+        <VerificationQuestionPageContent verificationQuestion={potentialVerificationQuestion}/>
       </Grid>
       <Grid item container justifyContent='center'>
-        <Typography color='primary' variant='h1'>Bye. <PanTool color='secondary' fontSize={'large'} /></Typography>
+        <AddVerificationQuestionCompleteFarewell/>
       </Grid>
     </VerificationPageLayout>
   )

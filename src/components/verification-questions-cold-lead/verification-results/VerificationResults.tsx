@@ -16,6 +16,8 @@ import blckTwttrTheme from '../../theme/Theme'
 import firebaseAnalyticsClient from '../../shared/firebase/firebaseAnalyticsClient'
 import cmsClient from '../../shared/cms/cmsClient'
 import { RoutesEnum } from '../../../App'
+import AddVerificationQuestionCompleteFarewell
+  from '../verification-question/components/AddVerificationQuestionCompleteFarewell'
 
 export const useStyles = makeStyles((theme: Theme) => ({
   root: {
@@ -145,7 +147,7 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
   }, [])
 
   const goToAddQuestion = () => {
-    console.log('submit all form fields to cms client craete question')
+    firebaseAnalyticsClient.addQuestionClicked(coldLead?._id??"NoLeadId")
     coldLead && history.push(RoutesEnum.ADD_ENTRY_QUESTION + '/' + coldLead._id)
   }
 
@@ -185,9 +187,9 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
   React.useEffect(() => {
     coldLead?._id &&
     leadBlackCard &&
-    firebaseAnalyticsClient.reportCardViewed(coldLead?._id, leadBlackCard)
+    firebaseAnalyticsClient.blackCardViewed(coldLead?._id, leadBlackCard)
 
-    coldLead?._id && (leadBlackCard?.isVerified ? firebaseAnalyticsClient.reportCardSuccess(coldLead?._id) : firebaseAnalyticsClient.reportCardFail(coldLead?._id))
+    coldLead?._id && (leadBlackCard?.isVerified ? firebaseAnalyticsClient.blackCardSuccess(coldLead?._id) : firebaseAnalyticsClient.blackCardFail(coldLead?._id))
   }, [leadBlackCard])
 
   const questionResultBlackCard = () => {
@@ -315,7 +317,7 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
       </Grid>
       <Grid item container justifyContent='center'>
         <Grid container item xs={10} justifyContent='center'>
-          <Button
+          {leadBlackCard?.isVerified ? <Button
             aria-label='submit a question'
             color='secondary'
             variant='outlined'
@@ -325,7 +327,7 @@ const VerificationResults: FunctionComponent<VerificationStepProps> = ({}: Verif
             <Typography variant='button' align='center' style={{textTransform: 'capitalize'}}>
               Add a #BlackTwitterVerificationQuestion
             </Typography>
-          </Button>
+          </Button>: <AddVerificationQuestionCompleteFarewell/>}
         </Grid>
       </Grid>
     </VerificationPageLayout>
