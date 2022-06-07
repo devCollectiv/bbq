@@ -1,5 +1,5 @@
 import { Button, CircularProgress, Grid, TextField } from '@material-ui/core'
-import React, { ChangeEvent, FunctionComponent } from 'react'
+import React, { ChangeEvent, FunctionComponent, useContext } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import { useHistory, useLocation, useParams } from 'react-router-dom'
 import { useStepStyles } from '../email-capture-step/EmailCaptureStep'
@@ -19,6 +19,7 @@ import VerificationPageLayout from '../verification-results/VerificationPageLayo
 import VerificationQuestionImageInput from '../verification-question-image/VerificationQuestionImageInput'
 import cmsService from '../../shared/cms/cmsService'
 import { RoutesEnum } from '../../../App'
+import AnimationContext from '../../../animations/animation-context/AnimationContext'
 
 
 const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: VerificationStepProps) => {
@@ -38,12 +39,16 @@ const AddVerificationQuestion: FunctionComponent<VerificationStepProps> = ({}: V
   const {id}: { id: string } = useParams()
   const [coldLead, setColdLead] = React.useState<ColdLead>()
 
+  const animationContext = useContext(AnimationContext)
   React.useEffect(() => {
     if (id) {
       cmsClient.fetchColdLead(id).then((retrievedLead) => {
         setColdLead(retrievedLead)
       })
     }
+
+    console.log("about to open lock screen")
+        // animationContext && animationContext.openLockScreen && animationContext.openLockScreen()
   }, [])
 
   const history = useHistory()

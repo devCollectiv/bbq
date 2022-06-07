@@ -41,9 +41,9 @@ const AddVerificationQuestionComplete: FunctionComponent<VerificationStepProps> 
   const [potentialVerificationQuestion, setPotentialVerificationQuestion] = React.useState<AddVerificationQuestionState>({})
   React.useEffect(() => {
     if (questionId) {
-      cmsClient.fetchVerificationQuestion(questionId).then((retrievedQuestion: SanityVerificationQuestion) => {
-        setPotentialVerificationQuestion(retrievedQuestion)
-      })
+      // cmsClient.fetchVerificationQuestion(questionId).then((retrievedQuestion: SanityVerificationQuestion) => {
+      //   setPotentialVerificationQuestion(retrievedQuestion)
+      // })
     }
   }, [])
 

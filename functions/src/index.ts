@@ -3,26 +3,13 @@ import express from "express";
 import cors from "cors";
 import * as admin from "firebase-admin";
 import * as logClient from "./logClient";
-import * as cmsClient from "./cmsClient";
-import {SanityCsvToProcess, SanityDesignToProcess} from "./cmsClient";
-import * as convertImageClient from "./convertImageClient";
-import * as Promise from "es6-promise";
-import csvClient, {CSVItemColor, CSVItemType, CSVSize} from "./csvClient";
-import Queue from "queue-promise";
-// To Throttle requests to sanity
-const queue = new Queue({
-  concurrent: 1,
-  interval: 1000 /25,
-});
-Promise.polyfill();
+import questionClient, {QuestionLevelEnum} from "./questionClient";
+import {ColdLeadAttempt, SanityVerificationQuestion} from "../../src/utils/Types";
+import {UpdateLeadRequest} from "../../src/components/verification-questions-cold-lead/leadClient";
+import cmsClient from "./cmsClient";
 
 const app = express();
 
-
-export type JamWorksOrder ={
-  tshirt?: number
-  sweatshirt?:number
-}
 
 app.use(cors());
 
@@ -31,100 +18,69 @@ admin.initializeApp({
 });
 
 // Custom logger to keep log messages together in one json
-const Logger = function(req:any, res:any, next:any) {
+const Logger = function(req: any, res: any, next: any) {
   logClient.createLogger(req, res, next);
   next();
 };
 
 app.use(Logger);
 
-app.post("/process-csv-into-sanity-documents",
+app.post("/grade-question/:level",
     async (req: any, functionRes: any) => {
-      const csvReadReq: SanityCsvToProcess = req.body;
-      const {dataset} = req.headers;
+      const gradeQuestionReq: { leadId: string, questionId: string, userResponse: string } = req.body;
+      const {level}: { level: any } = req.params;
 
-      logClient.log(`process-csv-into-sanity-documents-${dataset}`, "NOTICE",
-          "Request to process a csv", csvReadReq);
-
-      // get type of object
-      const sanityObjectType: string= csvReadReq.objectType ?? "";
-      logClient.log(`process-csv-into-sanity-documents-${dataset}`, "NOTICE",
-          "Get requests for type ", sanityObjectType);
-
-      // read csv into obj
-      const csV = await csvClient.loadCSV(csvReadReq.csvFile?.asset?.url);
-
-      logClient.log(`process-csv-into-sanity-documents-${dataset}`, "NOTICE",
-          "csv form file ", csV);
-      let newObjects:CSVSize[] | CSVItemType[]| CSVItemColor[] = [];
-
-      queue.on("resolve", (createdDocument) => {
-        logClient.log(`process-csv-into-sanity-documents-${dataset}`, "NOTICE",
-            "Created a document ", createdDocument);
-        // update request
-
-        // update request with created ids
-        logClient.log(`process-csv-into-sanity-documents-${dataset}`, "NOTICE",
-            `Created ${newObjects.length} new ${sanityObjectType}s`, newObjects);
-
-        // once all resolved somehow
-        if (queue.isEmpty) {
-          logClient.log(`process-csv-into-sanity-documents-${dataset}`, "NOTICE",
-              "Finished processing CSV found", newObjects);
-
-          functionRes.send({status: "200", newDocuments: newObjects});
-        }
-      });
-
-      queue.on("reject", (error) => {
-        logClient.log(`process-csv-into-sanity-documents-${dataset}`, "ERROR",
-            "Could not create object", error);
-      });
-
-      newObjects = csV.map((sanityObj:CSVItemType | CSVItemColor | CSVSize)=>{
-        queue.enqueue(()=> cmsClient.createSanityDocument(sanityObj, sanityObjectType));
-      });
-    });
-
-app.post("/process-jpg-to-transparent-png",
-    async (req: any, functionRes: any) => {
-      const screenshotReq: SanityDesignToProcess = req.body;
-      const {dataset} = req.headers;
-
-      const LOG_COMPONENT = `process-jpg-to-transparent-png-${dataset}`;
+      const LOG_COMPONENT = "grade-question";
 
       logClient.log(LOG_COMPONENT, "NOTICE",
-          "Request to process a cricut screenshot", screenshotReq);
+          "Request to grade a question", {gradeQuestionReq, level});
 
-      let pngUrl;
-      if (screenshotReq.imageSrc?.asset?.url) {
-        pngUrl = await convertImageClient
-            .convertJpgToPng(screenshotReq.imageSrc?.asset?.url ?? "");
-      } else {
-        logClient.log(LOG_COMPONENT, "ERROR",
-            "Sanity Image does not have a URL", screenshotReq);
+
+      const {
+        isCorrectAnswerVerified,
+        verificationQuestion,
+      }: { isCorrectAnswerVerified: boolean, verificationQuestion: SanityVerificationQuestion } = await questionClient.verifyResponse(gradeQuestionReq.questionId, gradeQuestionReq.userResponse, level);
+
+      let keyValue;
+      switch (parseInt(level ?? "")) {
+        case QuestionLevelEnum.EASY:
+          keyValue = "easyAttempt";
+          break;
+        case QuestionLevelEnum.HARD:
+          keyValue = "hardAttempt";
+          break;
+        case QuestionLevelEnum.MEDIUM:
+          keyValue = "mediumAttempt";
+          break;
+        default:
+          keyValue = "easyAttempt";
+          break;
       }
 
-      if (pngUrl) {
-        const sanityImageAsset = await cmsClient.uploadImageFromURL(pngUrl, screenshotReq.title ?? screenshotReq._id ?? "noFilename");
-        logClient.log(LOG_COMPONENT, "NOTICE",
-            "Image uploaded to Sanity", sanityImageAsset);
+      const attempt: { [key in string]: ColdLeadAttempt } = {
+        [keyValue]: {
+          isVerified: isCorrectAnswerVerified,
+          response: gradeQuestionReq.userResponse ?? "noResponseRecorded",
+          questionId: verificationQuestion?._id ?? "",
+          questionSlug: verificationQuestion?.slug?.current ?? "",
+          questionRef: cmsClient.utils.getSanityDocumentRef(verificationQuestion?._id ?? ""),
+        },
+      };
 
-        if (sanityImageAsset) {
-          const creationResult = await cmsClient.createSanityDesign(screenshotReq, sanityImageAsset);
-          const recordSuccess = await cmsClient.updateDesignToProcess(screenshotReq, creationResult);
-          logClient.log(LOG_COMPONENT, "NOTICE",
-              "Sanity Design Creation complete", creationResult);
+      const updateLeadRequest: UpdateLeadRequest = {
+        _id: gradeQuestionReq.leadId,
+        ...attempt,
+      };
 
-          functionRes.send({createdDesign: creationResult, designCreationRequest: recordSuccess});
-        }
-        functionRes.send({status: "404", message: "Error in uploading converted file"});
-      } else {
-        logClient.log(LOG_COMPONENT, "ERROR",
-            "Design Creation complete:NO PNG Created ");
-        functionRes.send({status: "404", message: "Error in converting original file"});
-      }
+      return cmsClient.updateLead(updateLeadRequest).then((result: UpdateLeadRequest) => {
+        functionRes.send({result, level});
+      });
+
+      // update lead with isVerified
+
+    // functionRes.send({status: "404", message: "Error in uploading converted file"});
     });
+
 
 exports.app = functions.https.onRequest(app);
 

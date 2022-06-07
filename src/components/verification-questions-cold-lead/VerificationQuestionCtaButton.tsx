@@ -1,7 +1,8 @@
-import React, { FunctionComponent } from 'react'
+import React, { FunctionComponent, useContext } from 'react'
 import { makeStyles, Theme } from '@material-ui/core/styles'
 import blckTwttrTheme from '../theme/Theme'
 import { Button, CircularProgress, Typography } from '@material-ui/core'
+import AnimationContext from '../../animations/animation-context/AnimationContext'
 
 export const useStyles = makeStyles((theme: Theme) => ({
   button: {
@@ -31,6 +32,13 @@ const VerificationQuestionCtaButton: FunctionComponent<IProps> = (props) => {
 
   }, [])
 
+  const animationContext = useContext(AnimationContext)
+  const buttonClick = (e:any)=>{
+    animationContext.fadeHomeOut()
+    props.onClicked(e)
+  }
+
+
   return (
     <Button
       color='primary'
@@ -40,7 +48,7 @@ const VerificationQuestionCtaButton: FunctionComponent<IProps> = (props) => {
       classes={{disabled: classes.disabledButton}}
       className={classes.button}
       fullWidth
-      onClick={props.onClicked}
+      onClick={buttonClick}
     >
       {!props.isLoading &&
         <Typography style={{fontFamily: 'Youth'}} variant='button'

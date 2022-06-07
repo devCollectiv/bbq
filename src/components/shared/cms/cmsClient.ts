@@ -302,34 +302,34 @@ const uploadVerificationQuestionImage = (blob: any, verificationQuestionId: stri
     })
 }
 
-const fetchVerificationQuestion = (questionId:string) =>{
-    console.log('fetchVerificationQuestion')
-
-    return sanityClient
-      .fetch(
-        `*[_type == "verificationQuestion" && _id == $questionId && isEnabled != true]{
-          _id,
-          slug,
-          levelOfDifficulty,
-          question,
-          correctAnswer,
-          incorrectAnswers[],
-          imageSrc{
-            asset->{
-              url,
-              metadata
-             }
-          },
-          category{
-             category
-          },
-       }`,
-        {questionId}
-      ).then((data: SanityVerificationQuestion[]) => {
-        console.log("THe verification question raw", data)
-        return data[0]
-      })
-}
+// const fetchVerificationQuestion = (questionId:string) =>{
+//     console.log('fetchVerificationQuestion')
+//
+//     return sanityClient
+//       .fetch(
+//         `*[_type == "verificationQuestion" && _id == $questionId && isEnabled != true]{
+//           _id,
+//           slug,
+//           levelOfDifficulty,
+//           question,
+//           correctAnswer,
+//           incorrectAnswers[],
+//           imageSrc{
+//             asset->{
+//               url,
+//               metadata
+//              }
+//           },
+//           category{
+//              category
+//           },
+//        }`,
+//         {questionId}
+//       ).then((data: SanityVerificationQuestion[]) => {
+//         console.log("THe verification question raw", data)
+//         return data[0]
+//       })
+// }
 
 export default {
   fetchRef,
@@ -339,6 +339,6 @@ export default {
   getAllVerificationQuestionByCategoryAndDifficulty,
   createVerificationQuestion,
   uploadVerificationQuestionImage,
-  fetchVerificationQuestion,
+  // fetchVerificationQuestion,
   utils
 }
